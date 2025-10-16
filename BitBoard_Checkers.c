@@ -237,12 +237,19 @@ bool save_game(const char *filename, Bitboard red, Bitboard black, Bitboard king
 bool load_game(const char *filename, Bitboard *red, Bitboard *black, Bitboard *kings, bool *redTurn) {
     FILE *f = fopen(filename, "r");
     if (!f) return false;
-    unsigned long long r, b, k;
-    int turn;
-    if (fscanf(f, "%llu %llu %llu %d", &r, &b, &k, &turn) < 4) {
-        fclose(f);
-        return false;
-    }
+    char line[128];
+    unsigned long long r = 0, b = 0, k = 0;
+    int turn = 0;
+
+    if (!fgets(line, sizeof(line), f)) { fclose(f); return false; }
+    r = strtoull(line, NULL, 10);
+    if (!fgets(line, sizeof(line), f)) { fclose(f); return false; }
+    b = strtoull(line, NULL, 10);
+    if (!fgets(line, sizeof(line), f)) { fclose(f); return false; }
+    k = strtoull(line, NULL, 10);
+    if (!fgets(line, sizeof(line), f)) { fclose(f); return false; }
+    turn = atoi(line);
+
     *red = (Bitboard)r;
     *black = (Bitboard)b;
     *kings = (Bitboard)k;
@@ -250,156 +257,90 @@ bool load_game(const char *filename, Bitboard *red, Bitboard *black, Bitboard *k
     fclose(f);
     return true;
 }
-// ----------- Main Game Loop -----------
-// int main(void) {
-//     setvbuf(stdout, NULL, _IONBF, 0); // flush output immediately (for VS Code)
 
-//     Bitboard red, black;
-//     init_board(&red, &black);
-//     bool redTurn = true;
 
-//     char from[8], to[8];
-//     printf("=== Bitboard Checkers ===\n");
-//     printf("Enter moves like: b6 a5 or capture like: b3 d5\n");
-//     printf("Type 'quit' to exit.\n");
-
-//     print_board(red, black);
-//     while (1) {
-//         printf("%s's move: ", redTurn ? "Red" : "Black");
-//         if (scanf("%7s", from) != 1) break;
-//         if (strcasecmp(from, "quit") == 0) break;
-//         if (scanf("%7s", to) != 1) break;
-//         int fromSq = parse_square(from);
-//         int toSq   = parse_square(to);
-//         if (fromSq < 0 || toSq < 0) {
-//             printf("Invalid coordinates. Try again.\n");
-//             continue;
-// int main(void) {
-//     setvbuf(stdout, NULL, _IONBF, 0); // flush output immediately (for VS Code)
-
+// int main() {
 //     Bitboard red, black, kings;
-//     init_board(&red, &black, &kings);
 //     bool redTurn = true;
+//     char cmd[64];
+//     char extra[64];
+//     char filename[128];
 
-//     char from[8], to[8];
-//     printf("=== Bitboard Checkers ===\n");
-//     printf("Enter moves like: b6 a5 or capture like: b3 d5\n");
-//     printf("Type 'quit' to exit.\n");
+//     printf("Welcome to Bitboard Checkers!\n");
+//     printf("Commands:\n");
+//     printf("  move <from> <to>         - e.g. move b6 a5\n");
+//     printf("  save <filename>          - e.g. save mygame.txt\n");
+//     printf("  load <filename>          - e.g. load mygame.txt\n");
+//     printf("  exit\n");
 
-//     print_board(red, black, kings);
+//     init_board(&red, &black, &kings);
 
 //     while (1) {
-//         printf("%s's move: ", redTurn ? "Red" : "Black");
+//         print_board(red, black, kings);
+//         printf("%s's turn > ", redTurn ? "Red" : "Black");
+//         if (!fgets(cmd, sizeof(cmd), stdin)) break;
 
-//         if (scanf("%7s", from) != 1) break;
-//         if (strcasecmp(from, "quit") == 0) break;
-//         if (scanf("%7s", to) != 1) break;
+//         // Strip trailing newline
+//         size_t len = strlen(cmd);
+//         if (len && cmd[len-1] == '\n') cmd[len-1] = 0;
 
-//         int fromSq = parse_square(from);
-//         int toSq   = parse_square(to);
+//         if (strncmp(cmd, "exit", 4) == 0) break;
 
-//         if (fromSq < 0 || toSq < 0) {
-//             printf("Invalid coordinates. Try again.\n");
+//         if (sscanf(cmd, "save %127s", filename) == 1) {
+//             if (save_game(filename, red, black, kings, redTurn))
+//                 printf("Game saved to %s\n", filename);
+//             else
+//                 printf("Failed to save game.\n");
 //             continue;
 //         }
 
-//         Bitboard *current = redTurn ? &red : &black;
-//         Bitboard *enemy   = redTurn ? &black : &red;
-//         Bitboard *kings   = redTurn ? &kings : &red;
-
-
-//         if (try_move(current, enemy, kings, fromSq, toSq, redTurn)) {
-//             print_board(red, black, kings);
-//             redTurn = !redTurn;
-//         } else {
-//             printf("Illegal move. Try again.\n");
+//         if (sscanf(cmd, "load %127s", filename) == 1) {
+//             if (load_game(filename, &red, &black, &kings, &redTurn))
+//                 printf("Game loaded from %s\n", filename);
+//             else
+//                 printf("Failed to load game.\n");
+//             continue;
 //         }
+
+//         // Move command
+//         char from_square[8] = {0}, to_square[8] = {0};
+//         if (sscanf(cmd, "move %7s %7s %63s", from_square, to_square, extra) >= 2) {
+//             int from = parse_square(from_square);
+//             int to   = parse_square(to_square);
+//             Bitboard *player = redTurn ? &red : &black;
+//             Bitboard *opponent = redTurn ? &black : &red;
+
+//             if (try_move(player, opponent, &kings, from, to, redTurn)) {
+//                 // Check forced multiple captures
+//                 bool multi_capture = false;
+//                 int cur_pos = to;
+//                 while (can_capture_more(*player, *opponent, kings, cur_pos, redTurn)) {
+//                     print_board(red, black, kings);
+//                     printf("%s must continue capture from %c%d\n", redTurn ? "Red" : "Black",
+//                         'a' + (cur_pos % 8), 8 - (cur_pos / 8));
+//                     printf("Next move > ");
+//                     if (!fgets(cmd, sizeof(cmd), stdin)) break;
+//                     if (sscanf(cmd, "%7s", to_square) != 1) break;
+//                     int next_to = parse_square(to_square);
+//                     if (!try_move(player, opponent, &kings, cur_pos, next_to, redTurn)) {
+//                         printf("Invalid multi-capture move. Turn forfeit.\n");
+//                         break;
+//                     }
+//                     cur_pos = next_to;
+//                     multi_capture = true;
+//                 }
+//                 redTurn = !redTurn;
+//             } else {
+//                 printf("Invalid move!\n");
+//             }
+//             continue;
+//         }
+
+//         printf("Unknown or malformed command.\n");
 //     }
 
-//     printf("Game ended.\n");
+//     printf("Thanks for playing!\n");
 //     return 0;
 // }
 
-int main() {
-    Bitboard red, black, kings;
-    bool redTurn = true;
-    char cmd[64];
-    char extra[64];
-    char filename[128];
-
-    printf("Welcome to Bitboard Checkers!\n");
-    printf("Commands:\n");
-    printf("  move <from> <to>         - e.g. move b6 a5\n");
-    printf("  save <filename>          - e.g. save mygame.txt\n");
-    printf("  load <filename>          - e.g. load mygame.txt\n");
-    printf("  exit\n");
-
-    init_board(&red, &black, &kings);
-
-    while (1) {
-        print_board(red, black, kings);
-        printf("%s's turn > ", redTurn ? "Red" : "Black");
-        if (!fgets(cmd, sizeof(cmd), stdin)) break;
-
-        // Strip trailing newline
-        size_t len = strlen(cmd);
-        if (len && cmd[len-1] == '\n') cmd[len-1] = 0;
-
-        if (strncmp(cmd, "exit", 4) == 0) break;
-
-        if (sscanf(cmd, "save %127s", filename) == 1) {
-            if (save_game(filename, red, black, kings, redTurn))
-                printf("Game saved to %s\n", filename);
-            else
-                printf("Failed to save game.\n");
-            continue;
-        }
-
-        if (sscanf(cmd, "load %127s", filename) == 1) {
-            if (load_game(filename, &red, &black, &kings, &redTurn))
-                printf("Game loaded from %s\n", filename);
-            else
-                printf("Failed to load game.\n");
-            continue;
-        }
-
-        // Move command
-        char from_square[8] = {0}, to_square[8] = {0};
-        if (sscanf(cmd, "move %7s %7s %63s", from_square, to_square, extra) >= 2) {
-            int from = parse_square(from_square);
-            int to   = parse_square(to_square);
-            Bitboard *player = redTurn ? &red : &black;
-            Bitboard *opponent = redTurn ? &black : &red;
-
-            if (try_move(player, opponent, &kings, from, to, redTurn)) {
-                // Check forced multiple captures
-                bool multi_capture = false;
-                int cur_pos = to;
-                while (can_capture_more(*player, *opponent, kings, cur_pos, redTurn)) {
-                    print_board(red, black, kings);
-                    printf("%s must continue capture from %c%d\n", redTurn ? "Red" : "Black",
-                        'a' + (cur_pos % 8), 8 - (cur_pos / 8));
-                    printf("Next move > ");
-                    if (!fgets(cmd, sizeof(cmd), stdin)) break;
-                    if (sscanf(cmd, "%7s", to_square) != 1) break;
-                    int next_to = parse_square(to_square);
-                    if (!try_move(player, opponent, &kings, cur_pos, next_to, redTurn)) {
-                        printf("Invalid multi-capture move. Turn forfeit.\n");
-                        break;
-                    }
-                    cur_pos = next_to;
-                    multi_capture = true;
-                }
-                redTurn = !redTurn;
-            } else {
-                printf("Invalid move!\n");
-            }
-            continue;
-        }
-
-        printf("Unknown or malformed command.\n");
-    }
-
-    printf("Thanks for playing!\n");
-    return 0;
-}
+// Library functions end here. The program entry point is in main.c

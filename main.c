@@ -5,6 +5,20 @@
 #include <ctype.h>
 #include "BitBoard_Checkers.h"
 
+// Provide a simple Windows-only implementation of strcasecmp so code using
+// strcasecmp works cross-platform without relying on platform-specific names.
+#if defined(_WIN32) && !defined(__GNUC__)
+int strcasecmp(const char *a, const char *b) {
+    while (*a && *b) {
+        unsigned char ca = (unsigned char) tolower((unsigned char)*a);
+        unsigned char cb = (unsigned char) tolower((unsigned char)*b);
+        if (ca != cb) return (int)ca - (int)cb;
+        a++; b++;
+    }
+    return (int) tolower((unsigned char)*a) - (int) tolower((unsigned char)*b);
+}
+#endif
+
 int main(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
 
