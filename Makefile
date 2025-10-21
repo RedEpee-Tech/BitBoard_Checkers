@@ -64,13 +64,13 @@ clean:
 
 # Save current game state (optional helper)
 save:
-	@echo "Saving current game state to savegame.dat..."
-	@./$(TARGET) save savegame.dat
+	@echo "Saving current game state to checkers_save.dat..."
+	@./$(TARGET) save checkers_save.dat
 
 # Load saved game (optional helper)
 load:
-	@echo "Loading saved game from savegame.dat..."
-	@./$(TARGET) load savegame.dat
+	@echo "Loading saved game from checkers_save.dat..."
+	@./$(TARGET) load checkers_save.dat
 
 
 
