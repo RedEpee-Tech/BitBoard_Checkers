@@ -229,10 +229,9 @@ bool hasAnyMoves(BitBoard *board, bool isRed) {
     for (int i = 0; i < 32; ++i) {
         if (!GetBit(my, i)) continue;
 
-        bool king = GetBit(board->kings, i);
-        int row = i / 4;
-        int col = (i % 4) * 2 + ((row + 1) % 2);
-        int forwardDir = isRed ? 1 : -1;
+    bool king = GetBit(board->kings, i);
+    int row = i / 4;
+    int col = (i % 4) * 2 + ((row + 1) % 2);
 
         const int dirs[4][2] = { {1,1}, {1,-1}, {-1,1}, {-1,-1} };
 
@@ -424,11 +423,11 @@ int main(void) {
                     }
 
                     int chainRes = tryMove(&board, isRedTurn, cur, nextIdx);
-                    if (chainRes = 2) {
+                    if (chainRes == 2) {
                         cur = nextIdx;
                         checkKing(&board);
                         printBoard(&board);
-                    } else if (chainRes = 1) {
+                    } else if (chainRes == 1) {
                         cur = nextIdx;
                         checkKing(&board);
                         printBoard(&board);
@@ -472,90 +471,3 @@ int main(void) {
 
     return 0;
 }
-//-incorrect version-
-
-
-// int main(void) {
-//     BitBoard board;
-//     initBoard(&board);
-//     printBoard(&board);
-
-//     bool isRedTurn = true;
-//     char inputFrom[8], inputTo[8];
-
-//     while (1) {
-//         printf("%s move (e.g. f3 e4): ", isRedTurn ? "Red" : "Black");
-
-        
-//         if (scanf(" %2s %2s", inputFrom, inputTo) != 2) break;
-        
-
-//         inputFrom[0] = tolower((unsigned char)inputFrom[0]);
-//         inputTo[0]   = tolower((unsigned char)inputTo[0]);
-
-//         int fromIdx = squareToIndexStr(inputFrom);
-//         int toIdx   = squareToIndexStr(inputTo);
-//         if (fromIdx == -1 || toIdx == -1) {
-//             printf("Invalid square. Use format e3 f4.\n");
-//             continue;
-//         }
-
-//         int res = tryMove(&board, isRedTurn, fromIdx, toIdx);
-//         if (res == 0) {
-//             printf("Illegal move.\n");
-//             continue;
-//         }
-
-//         checkKing(&board);
-//         printBoard(&board);
-
-//         // Handle multi-capture chaining
-//         if (res > 1) {
-//             int cur = toIdx;
-//             while (canCapture(&board, isRedTurn, cur)) {
-
-//                 printf("You can capture again! Enter next landing square (e.g. c1): ");
-//                 if (scanf(" %2s", inputTo) != 1) goto end_game;
-
-//                 inputTo[0] = tolower((unsigned char)inputTo[0]);
-//                 int nextIdx = squareToIndexStr(inputTo);
-//                 if (nextIdx == -1) { printf("Invalid square.\n"); break; }
-
-//                 int chainRes = tryMove(&board, isRedTurn, cur, nextIdx);
-//                 if (chainRes = 2) {
-//                     cur = nextIdx;
-//                     checkKing(&board);
-//                     printBoard(&board);
-//                 } 
-//                 else if (chainRes = 1){
-//                     cur = nextIdx;
-//                     checkKing(&board);
-//                     printBoard(&board);
-//                     break;
-//                 }
-
-//                 else
-//                  {
-//                     printf("Invalid capture sequence.\n");
-//                     break;
-//                 }
-
-//                 if (checkWin(&board)) break;
-//             }
-//         }
-//         if (checkWin(&board)) break;  // ✅ add this line
-
-//         isRedTurn = !isRedTurn;
-//     }
-//     printf("Game over %s wins", isRedTurn);
-//     printf("Would you like to play again? (y/n): ");
-//     scanf(" %c", bool &playAgain);
-//     if (playAgain == 'y' || playAgain == 'Y') {
-//         main(); // Restart the game
-//     }
-    
-
-// end_game:
-//     printf("Game ended.\n");
-//     return 0;
-// }
