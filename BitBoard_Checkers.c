@@ -352,6 +352,14 @@ int main(void) {
 
             if (scanf(" %7s", inputFrom) != 1) break;
 
+            // Allow user to type 'end' to quit the game at any time
+            if (strcmp(inputFrom, "end") == 0) {
+                printf("Exiting game.\n");
+                gameOver = true;
+                playAgain = false;
+                break;
+            }
+
             // --- SAVE OPTION ---
             if (strcmp(inputFrom, "save") == 0) {
                 saveGame(&board, isRedTurn, "checkers_save.dat");
@@ -365,11 +373,19 @@ int main(void) {
                 continue;
             }
 
-            // Check if user entered second coordinate
-            else if (scanf(" %2s", inputTo) != 1) {
-                printf("Error: Both FROM and TO squares are required (e.g., 'e3 f4').\n");
-                while (getchar() != '\n'); // Clear input buffer
-                continue;
+            // Check if user entered second coordinate (or wants to end)
+            else {
+                if (scanf(" %7s", inputTo) != 1) {
+                    printf("Error: Both FROM and TO squares are required (e.g., 'e3 f4').\n");
+                    while (getchar() != '\n'); // Clear input buffer
+                    continue;
+                }
+                if (strcmp(inputTo, "end") == 0) {
+                    printf("Exiting game.\n");
+                    gameOver = true;
+                    playAgain = false;
+                    break;
+                }
             }
 
             // if (scanf(" %2s %2s", inputFrom, inputTo) != 2) {
@@ -410,8 +426,14 @@ int main(void) {
                 int cur = toIdx;
                 while (canCapture(&board, isRedTurn, cur)) {
                     printf("You can capture again! Enter next landing square (e.g. c1): ");
-                    if (scanf(" %2s", inputTo) != 1) {
+                    if (scanf(" %7s", inputTo) != 1) {
                         gameOver = true;
+                        break;
+                    }
+                    if (strcmp(inputTo, "end") == 0) {
+                        printf("Exiting game.\n");
+                        gameOver = true;
+                        playAgain = false;
                         break;
                     }
 
@@ -423,11 +445,11 @@ int main(void) {
                     }
 
                     int chainRes = tryMove(&board, isRedTurn, cur, nextIdx);
-                    if (chainRes == 2) {
+                    if (chainRes = 2) {
                         cur = nextIdx;
                         checkKing(&board);
                         printBoard(&board);
-                    } else if (chainRes == 1) {
+                    } else if (chainRes = 1) {
                         cur = nextIdx;
                         checkKing(&board);
                         printBoard(&board);
